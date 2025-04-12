@@ -1,5 +1,6 @@
 " --- Общие настройки ---
 syntax on
+set relativenumber     " относительные для остальных
 set number
 set tabstop=4
 set shiftwidth=4
@@ -43,6 +44,9 @@ let g:airline#extensions#tabline#show_tab_nr = 0
 let g:airline#extensions#tabline#tab_nr_type = 0
 
 let g:airline#extensions#tabline#formatter = 'custom'
+
+" надо чтобы исправить ошибку с двумя airline
+autocmd BufEnter * if exists('*AirlineRefresh') | call airline#extensions#tabline#init() | call AirlineRefresh() | endif
 
 " настройка нижней полоски
 " Кастомизация правой части airline
@@ -112,9 +116,11 @@ let g:airline#extensions#term#enabled = 1
 " пока не знаю, но надо
 set laststatus=3
 
-" надо чтобы исправить ошибку с двумя airline
-autocmd BufEnter * if exists('*AirlineRefresh') | call airline#extensions#tabline#init() | call AirlineRefresh() | endif
-
 " отключает авто коментарии для новых строк после коментаря 
 autocmd FileType * setlocal formatoptions-=cro
 
+" Вставка: отключить относительную нумерацию
+autocmd InsertEnter * set norelativenumber
+
+" Выход из вставки: снова включить относительную
+autocmd InsertLeave * set relativenumber
