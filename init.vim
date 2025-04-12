@@ -170,3 +170,40 @@ require("dashboard").setup({
 })
 EOF
 
+" отображать только редактируемые файлы
+lua << EOF
+require('telescope').setup({
+  defaults = {
+    find_command = {
+      "fd",
+      "--type", "f",
+      "--hidden",
+      "--exclude", ".git",
+      "--exclude", "node_modules",
+      "--exclude", "venv",
+      "--exclude", "build",
+      "--exclude", "*.o",
+      "--exclude", "*.so",
+      "--exclude", "*.exe",
+      "--exclude", "*.dll",
+      "--exclude", "*.bin",
+      "--exclude", "*.class",
+      "--exclude", "*.pyc",
+      "--exclude", "*.jpg",
+      "--exclude", "*.jpeg",
+      "--exclude", "*.png",
+      "--exclude", "*.gif",
+      "--exclude", "*.ttf",
+      "--exclude", "*.woff",
+      "--exclude", "*.zip",
+      "--exclude", "*.tar",
+      "--exclude", "*.pdf",
+      "--exclude", "*.mp3",
+      "--exclude", "*.mp4",
+      "--exclude", "*.avi",
+      "--exclude", "*.ico",
+    }
+  }
+})
+EOF
+
