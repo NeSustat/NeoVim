@@ -12,9 +12,16 @@ set signcolumn=yes
 
 let mapleader = "\\"
 
+" вернутся на стартовое окно по \d
+nnoremap <Leader>d :Dashboard<CR>
+
+
 " --- Плагины ---
 call plug#begin('~/.vim/plugged')
-
+Plug 'nvim-lua/plenary.nvim'
+Plug 'nvim-telescope/telescope.nvim'
+Plug 'nvimdev/dashboard-nvim'
+Plug 'nvim-tree/nvim-web-devicons'
 Plug 'neoclide/coc.nvim', {'branch': 'release'}
 Plug 'vim-airline/vim-airline'
 Plug 'vim-airline/vim-airline-themes'
@@ -124,3 +131,42 @@ autocmd InsertEnter * set norelativenumber
 
 " Выход из вставки: снова включить относительную
 autocmd InsertLeave * set relativenumber
+
+
+" стартовое окно
+lua << EOF
+require("dashboard").setup({
+  theme = "hyper",
+  config = {
+    header = {
+      "   ▄ ▄ ",
+      "▄█▀█▀█▄     ▄▀▀▄",
+      "█▀█▀█▀█▄ ▄▀▄ █",
+      "▀▀ ▀ ▀ ▀▀   ▀ ▀  Neovim",
+      "",
+    },
+    shortcut = {
+      {
+        desc = " Files",
+        group = "Label",
+        action = "Telescope find_files",
+        key = "f",
+      },
+      {
+        desc = " Recents",
+        group = "Label",
+        action = "Telescope oldfiles",
+        key = "r",
+      },
+      {
+        desc = " Config",
+        group = "Label",
+        action = "edit ~/.config/nvim/init.vim",
+        key = "c",
+      },
+    },
+    footer = { "" },
+  },
+})
+EOF
+
