@@ -9,6 +9,11 @@ set encoding=utf-8
 set hidden
 set updatetime=300
 set signcolumn=yes
+set shell=zsh
+set shellcmdflag=-i
+set shellquote=
+set shellxquote=
+
 
 let mapleader = "\\"
 
@@ -25,6 +30,7 @@ Plug 'nvim-tree/nvim-web-devicons'
 Plug 'neoclide/coc.nvim', {'branch': 'release'}
 Plug 'vim-airline/vim-airline'
 Plug 'vim-airline/vim-airline-themes'
+Plug 'windwp/nvim-autopairs'
 " цветовые схемы
 Plug 'joshdick/onedark.vim'
 Plug 'bcicen/vim-vice'
@@ -76,23 +82,26 @@ let g:airline_section_x = ''
 let g:airline_section_y = ''
 
 
-" --- Открывать сначала терминал, потом файл (если есть) ---
+" --- Открывать сначала терминал в директории файла (если файл есть) ---
 autocmd VimEnter * call SetupTabs()
 
 function! SetupTabs()
   if argc() > 0
     let l:file = argv(0)
+    let l:dir = fnamemodify(l:file, ":p:h")
     args []
-    tabnew | terminal
+    tabnew | execute 'lcd ' . fnameescape(l:dir) | term
     tabnew | execute 'edit' fnameescape(l:file)
-    " Закрываем первую вкладку (ненужную с auto-открытым файлом)
     silent! tabclose 1
   else
-    tabnew | terminal
+    tabnew | term
     tabnew | enew
     silent! tabclose 1
   endif
 endfunction
+
+tnoremap <Esc> <C-\><C-n>
+
 
 " --- Убиваем все окна по :q или :wq ---
 command! Q tabdo q! | redraw!
@@ -212,4 +221,32 @@ require('telescope').setup({
   }
 })
 EOF
+
+" ---- авто скобки ----
+lua << EOF
+require("nvim-autopairs").setup {}
+EOF
+
+
+
+function! SwitchTermToFileDir()
+  " Получаем путь к директории текущего файла
+  let l:dir = expand('%:p:h')
+  " Переключаемся на первый таб (где терминал)
+  tabfirst
+  " Меняем локальную директорию этого таба
+  execute 'lcd' fnameescape(l:dir)
+  " Отправляем команду cd в терминал
+  call chansend(b:terminal_job_id, "cd " . l:dir . "\n")
+endfunction
+
+" При открытии любого файла запускаем функцию
+autocmd BufReadPost * call SwitchTermToFileDir()
+
+autocmd VimEnter * call AutoTabSwitch()
+
+function! AutoTabSwitch()
+  " Дать терминалу время открыться, потом нажать Ctrl+Space
+  call timer_start(100, { -> execute('normal! \<C-Space>') })
+endfunction
 
