@@ -37,9 +37,6 @@ Plug 'bcicen/vim-vice'
 
 call plug#end()
 
-" --- Настройка Coc ---
-"  принять подсказку
-inoremap <silent><expr> <CR> pumvisible() ? coc#_select_confirm() : "\<CR>"
 
 
 " --- Цветовая схема ---
@@ -240,13 +237,23 @@ function! SwitchTermToFileDir()
   call chansend(b:terminal_job_id, "cd " . l:dir . "\n")
 endfunction
 
+
+" coc настройка
+function! SwitchTermToFileDir()
+  let l:dir = expand('%:p:h')
+  if &buftype == 'terminal' && exists('b:terminal_job_id')
+    execute 'lcd' fnameescape(l:dir)
+    call chansend(b:terminal_job_id, "cd " . l:dir . "\n")
+  endif
+endfunction
+
+
+
 " При открытии любого файла запускаем функцию
 autocmd BufReadPost * call SwitchTermToFileDir()
 
-autocmd VimEnter * call AutoTabSwitch()
-
-function! AutoTabSwitch()
-  " Дать терминалу время открыться, потом нажать Ctrl+Space
-  call timer_start(100, { -> execute('normal! \<C-Space>') })
-endfunction
-
+" настройка coc "
+inoremap <silent><expr> <CR> pumvisible() ? coc#_select_confirm() : "\<CR>"
+inoremap <silent><expr> <CR> pumvisible()
+  \ ? coc#_select_confirm()
+  \ : "\<C-g>u\<CR>\<c-r>=coc#on_enter()\<CR>"

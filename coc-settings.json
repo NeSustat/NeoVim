@@ -1,0 +1,9 @@
+{
+  "suggest.noselect": false,
+  "suggest.enablePreselect": true,
+  "suggest.snippetIndicator": "",
+  "coc.preferences.useQuickfixForLocations": true,
+  "coc.source.snippets.enable": true,
+  "snippets.ultisnips.pythonPrompt": false
+}
+
