@@ -125,6 +125,16 @@ function! SwitchTermDirOnFileOpen()
   tabnext
 endfunction
 
+function! ConditionalStartupTabs()
+  if argc() == 0
+    " никаких табов — пусть dashboard покажется сам
+    return
+  endif
+
+  " иначе — запущен с файлом, делаем всё как ты хочешь
+  call SetupTabs()
+endfunction
+
 
 autocmd VimEnter * if argc() != 0 | call SetupTabs() | endif
 
