@@ -82,20 +82,59 @@ let g:airline_section_y = ''
 " --- Открывать сначала терминал в директории файла (если файл есть) ---
 autocmd VimEnter * call SetupTabs()
 
-function! SetupTabs()
-  if argc() > 0
-    let l:file = argv(0)
-    let l:dir = fnamemodify(l:file, ":p:h")
-    args []
-    tabnew | execute 'lcd ' . fnameescape(l:dir) | term
-    tabnew | execute 'edit' fnameescape(l:file)
-    silent! tabclose 1
-  else
-    tabnew | term
-    tabnew | enew
-    silent! tabclose 1
-  endif
+" ——— Функция логирования ———
+function! Log(msg)
+  let l:logfile = expand('~/nvim_startup.log')
+  call writefile([strftime("%Y-%m-%d %H:%M:%S") . ' ' . a:msg], l:logfile, 'a')
 endfunction
+
+
+" --- Автоматически открывать терминал + файл при запуске nvim ---
+
+function! SetupTabs()
+  if exists('g:term_tabnr') | return | endif
+  tabnew | term
+  let g:term_tabnr = tabpagenr()
+endfunction
+
+function! SetupTermDir()
+  execute g:term_tabnr . 'tabnext'
+  if exists('b:terminal_job_id')
+    call chansend(b:terminal_job_id, "cd " . fnameescape(g:start_dir) . "\n")
+  endif
+  tabnext
+endfunction
+
+" Когда файл открыт вручную — тоже отправим cd в терминал
+function! SwitchTermDirOnFileOpen()
+  if &buftype != '' | return | endif
+  if !exists('g:term_tabnr') | return | endif
+
+  let l:dir = expand('%:p:h')
+  let g:start_dir = l:dir
+
+  " Переключаемся на терминальный таб
+  execute g:term_tabnr . 'tabnext'
+
+  " Отправляем команду cd в терминал
+  if exists('b:terminal_job_id')
+    call chansend(b:terminal_job_id, "cd " . fnameescape(l:dir) . "\n")
+  endif
+
+  " Возвращаемся назад
+  tabnext
+endfunction
+
+
+autocmd VimEnter * if argc() != 0 | call SetupTabs() | endif
+
+
+" Триггеры
+autocmd VimEnter * call ConditionalStartupTabs()
+autocmd BufReadPost * call SwitchTermDirOnFileOpen()
+
+
+
 
 tnoremap <Esc> <C-\><C-n>
 
@@ -225,20 +264,6 @@ require("nvim-autopairs").setup {}
 EOF
 
 
-
-function! SwitchTermToFileDir()
-  " Получаем путь к директории текущего файла
-  let l:dir = expand('%:p:h')
-  " Переключаемся на первый таб (где терминал)
-  tabfirst
-  " Меняем локальную директорию этого таба
-  execute 'lcd' fnameescape(l:dir)
-  " Отправляем команду cd в терминал
-  call chansend(b:terminal_job_id, "cd " . l:dir . "\n")
-endfunction
-
-
-" coc настройка
 function! SwitchTermToFileDir()
   let l:dir = expand('%:p:h')
   if &buftype == 'terminal' && exists('b:terminal_job_id')
@@ -248,12 +273,12 @@ function! SwitchTermToFileDir()
 endfunction
 
 
-
 " При открытии любого файла запускаем функцию
 autocmd BufReadPost * call SwitchTermToFileDir()
 
 " настройка coc "
-inoremap <silent><expr> <CR> pumvisible() ? coc#_select_confirm() : "\<CR>"
 inoremap <silent><expr> <CR> pumvisible()
   \ ? coc#_select_confirm()
   \ : "\<C-g>u\<CR>\<c-r>=coc#on_enter()\<CR>"
+
+
