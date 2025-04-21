@@ -7,3 +7,16 @@
   "snippets.ultisnips.pythonPrompt": false
 }
 
+{
+  "emmet.includeLanguages": {
+    "javascript": "javascriptreact",
+    "typescript": "typescriptreact",
+    "html": "html",
+    "javascriptreact": "javascriptreact"
+  },
+  "emmet.syntaxProfiles": {
+    "javascript": "jsx",
+    "typescript": "jsx"
+  }
+}
+

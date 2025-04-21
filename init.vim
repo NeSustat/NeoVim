@@ -17,12 +17,15 @@ set shellxquote=
 
 let mapleader = "\\"
 
+
+
 " вернутся на стартовое окно по \d
 nnoremap <Leader>d :Dashboard<CR>
 
 
 " --- Плагины ---
 call plug#begin('~/.vim/plugged')
+Plug 'mattn/emmet-vim'
 Plug 'nvim-lua/plenary.nvim'
 Plug 'nvim-telescope/telescope.nvim'
 Plug 'nvimdev/dashboard-nvim'
@@ -148,6 +151,9 @@ autocmd BufReadPost * call SwitchTermDirOnFileOpen()
 
 tnoremap <Esc> <C-\><C-n>
 
+" --- Создание директории ---
+autocmd BufWritePre * silent! call mkdir(expand('%:p:h'), 'p')
+
 
 " --- Убиваем все окна по :q или :wq ---
 command! Q tabdo q! | redraw!
@@ -157,6 +163,11 @@ cnoreabbrev q Q
 cnoreabbrev wq WQ
 
 " --- Ctrl+Tab: переходит в следующий таб из любого режима (в том числе терминала) ---
+tnoremap <A-BS> <C-\><C-n>:tabnext<CR>
+nnoremap <A-BS> :tabnext<CR>
+inoremap <A-BS> <Esc>:tabnext<CR>
+vnoremap <A-BS> <Esc>:tabnext<CR>
+
 tnoremap <C-BS> <C-\><C-n>:tabnext<CR>
 nnoremap <C-BS> :tabnext<CR>
 inoremap <C-BS> <Esc>:tabnext<CR>
