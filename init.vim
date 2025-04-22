@@ -13,6 +13,8 @@ set shell=zsh
 set shellcmdflag=-i
 set shellquote=
 set shellxquote=
+set termguicolors
+
 
 " --- Управление --- "
 let mapleader = "\\"
@@ -40,11 +42,22 @@ tnoremap <C-BS> <C-\><C-n>:tabnext<CR>
 nnoremap <C-BS> :tabnext<CR>
 inoremap <C-BS> <Esc>:tabnext<CR>
 vnoremap <C-BS> <Esc>:tabnext<CR>
+
 " Ctrl+Shift+Tab: переход в предыдущий таб
 tnoremap <C-SPACE> <C-\><C-n>:tabprevious<CR>
 nnoremap <C-SPACE> :tabprevious<CR>
 inoremap <C-SPACE> <Esc>:tabprevious<CR>
 vnoremap <C-SPACE> <Esc>:tabprevious<CR>
+
+" Комментировать выделенное по нажатию /
+xnoremap / :Commentary<CR>
+
+" Сдвигать выделенное влево/вправо с помощью Tab и Shift+Tab
+vnoremap <Tab> >gv
+vnoremap <S-Tab> <gv
+
+
+
 " Терминал: выход по <Esc>
 tnoremap <Esc> <C-\><C-n>
 
@@ -63,7 +76,11 @@ Plug 'neoclide/coc.nvim', {'branch': 'release'}
 Plug 'vim-airline/vim-airline'
 Plug 'vim-airline/vim-airline-themes'
 Plug 'windwp/nvim-autopairs'
+Plug 'tpope/vim-commentary'
 " цветовые схемы
+Plug 'srcery-colors/srcery-vim'
+Plug 'lunarvim/horizon.nvim'
+Plug 'arzg/vim-colors-xcode'
 Plug 'joshdick/onedark.vim'
 Plug 'bcicen/vim-vice'
 
@@ -72,8 +89,15 @@ call plug#end()
 
 
 " --- Цветовая схема ---
-"colorscheme onedark
-colorscheme vice
+colorscheme srcery
+" colorscheme horizon
+" colorscheme xcodedark
+" colorscheme onedark
+"colorscheme vice
+
+" " Сделать подсветку Visual менее яркой
+" highlight Visual ctermbg=8 guibg=#3e4451
+
 
 " --- airline ---
 let g:airline#extensions#tabline#enabled = 1
