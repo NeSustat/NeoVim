@@ -14,13 +14,42 @@ set shellcmdflag=-i
 set shellquote=
 set shellxquote=
 
-
+" --- Управление --- "
 let mapleader = "\\"
-
-
 
 " вернутся на стартовое окно по \d
 nnoremap <Leader>d :Dashboard<CR>
+
+" открыть терминал \t
+nnoremap <Leader>t :lua OpenTerminalTab()<CR>
+
+" новый таб на \s
+"nnoremap <Leader>s :lua require('telescope.builtin').find_files()<CR>
+nnoremap <Leader>s :lua OpenSearchTab()<CR>
+
+" \q: закрыть текущий таб
+nnoremap <Leader>q :tabclose<CR>
+
+" Ctrl+Tab: переходит в следующий таб из любого режима (в том числе терминала)
+tnoremap <A-BS> <C-\><C-n>:tabnext<CR>
+nnoremap <A-BS> :tabnext<CR>
+inoremap <A-BS> <Esc>:tabnext<CR>
+vnoremap <A-BS> <Esc>:tabnext<CR>
+
+tnoremap <C-BS> <C-\><C-n>:tabnext<CR>
+nnoremap <C-BS> :tabnext<CR>
+inoremap <C-BS> <Esc>:tabnext<CR>
+vnoremap <C-BS> <Esc>:tabnext<CR>
+" Ctrl+Shift+Tab: переход в предыдущий таб
+tnoremap <C-SPACE> <C-\><C-n>:tabprevious<CR>
+nnoremap <C-SPACE> :tabprevious<CR>
+inoremap <C-SPACE> <Esc>:tabprevious<CR>
+vnoremap <C-SPACE> <Esc>:tabprevious<CR>
+" Терминал: выход по <Esc>
+tnoremap <Esc> <C-\><C-n>
+
+
+
 
 
 " --- Плагины ---
@@ -57,6 +86,11 @@ let g:airline#extensions#tabline#show_tab_nr = 0
 let g:airline#extensions#tabline#tab_nr_type = 0
 
 let g:airline#extensions#tabline#formatter = 'custom'
+
+" Автообновление Airline Tabline после закрытия таба
+autocmd TabClosed * if exists('*AirlineRefresh') | call AirlineRefresh() | endif
+autocmd TabEnter * if exists('*AirlineRefresh') | call AirlineRefresh() | endif
+
 
 " надо чтобы исправить ошибку с двумя airline
 autocmd BufEnter * if exists('*AirlineRefresh') | call airline#extensions#tabline#init() | call AirlineRefresh() | endif
@@ -147,6 +181,8 @@ autocmd VimEnter * call ConditionalStartupTabs()
 autocmd BufReadPost * call SwitchTermDirOnFileOpen()
 
 
+let g:term_tabnr = tabpagenr()
+
 
 
 tnoremap <Esc> <C-\><C-n>
@@ -162,26 +198,6 @@ command! WQ wall | tabdo q! | redraw!
 cnoreabbrev q Q
 cnoreabbrev wq WQ
 
-" --- Ctrl+Tab: переходит в следующий таб из любого режима (в том числе терминала) ---
-tnoremap <A-BS> <C-\><C-n>:tabnext<CR>
-nnoremap <A-BS> :tabnext<CR>
-inoremap <A-BS> <Esc>:tabnext<CR>
-vnoremap <A-BS> <Esc>:tabnext<CR>
-
-tnoremap <C-BS> <C-\><C-n>:tabnext<CR>
-nnoremap <C-BS> :tabnext<CR>
-inoremap <C-BS> <Esc>:tabnext<CR>
-vnoremap <C-BS> <Esc>:tabnext<CR>
-
-" --- Ctrl+Shift+Tab: переход в предыдущий таб
-tnoremap <C-SPACE> <C-\><C-n>:tabprevious<CR>
-nnoremap <C-SPACE> :tabprevious<CR>
-inoremap <C-SPACE> <Esc>:tabprevious<CR>
-vnoremap <C-SPACE> <Esc>:tabprevious<CR>
-
-
-" --- Терминал: выход по <Esc> ---
-tnoremap <Esc> <C-\><C-n>
 
 " Показывать airline даже в терминале
 let g:airline#extensions#term#enabled = 1
@@ -302,4 +318,57 @@ inoremap <silent><expr> <CR> pumvisible()
   \ ? coc#_select_confirm()
   \ : "\<C-g>u\<CR>\<c-r>=coc#on_enter()\<CR>"
 
+" new таб
+lua << EOF
+function OpenSearchTab()
+  local api = vim.api
+
+  -- Убедимся, что терминал создан
+  if vim.g.term_tabnr == nil then
+    vim.cmd("tabnew | term")
+    vim.g.term_tabnr = api.nvim_get_current_tabpage()
+  end
+
+  -- Создаём таб перед терминалом
+  local term_tab = vim.g.term_tabnr
+  vim.cmd((term_tab) .. "tabnew")
+
+  -- Запускаем Telescope
+  require('telescope.builtin').find_files()
+end
+EOF
+
+
+lua << EOF
+function OpenTerminalTab()
+  local dir = vim.fn.expand('%:p:h')
+  vim.cmd("tablast | tabnew | term")
+  vim.g.term_tabnr = vim.api.nvim_get_current_tabpage()
+  if vim.b.terminal_job_id then
+    vim.fn.chansend(vim.b.terminal_job_id, "cd " .. dir .. "\n")
+  end
+end
+EOF
+
+
+lua << EOF
+function OpenSearchTab()
+  local api = vim.api
+  local tab_count = api.nvim_list_tabpages()
+
+  -- Если терм вкладка не валидна, пересоздаем
+  if vim.g.term_tabnr == nil or vim.g.term_tabnr > #tab_count then
+    vim.cmd("tabnew | term")
+    vim.g.term_tabnr = api.nvim_get_current_tabpage()
+  end
+
+  -- Создаем таб перед терминалом
+  local term_tab = vim.g.term_tabnr
+  api.nvim_set_current_tabpage(term_tab)
+  vim.cmd("tabnew")
+
+  -- Запускаем Telescope
+  require('telescope.builtin').find_files()
+end
+EOF
 
