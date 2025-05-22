@@ -1,3 +1,4 @@
+
 " --- Общие настройки ---
 syntax on
 set relativenumber     " относительные для остальных
@@ -57,6 +58,7 @@ vnoremap <Tab> >gv
 vnoremap <S-Tab> <gv
 
 
+xnoremap <leader>r :<C-u>call ReplaceSelectedText()<CR>
 
 " Терминал: выход по <Esc>
 tnoremap <Esc> <C-\><C-n>
@@ -98,6 +100,32 @@ colorscheme srcery
 " " Сделать подсветку Visual менее яркой
 " highlight Visual ctermbg=8 guibg=#3e4451
 
+
+
+
+
+function! ReplaceSelectedText()
+  " Восстанавливаем визуальное выделение и сохраняем в регистр s
+  normal! gv"sy
+
+  " Получаем текст из регистра
+  let l:old = getreg("s")
+
+  " Если ничего не выделено — выводим ошибку
+  if empty(l:old)
+    echoerr "Ошибка: ничего не выделено"
+    return
+  endif
+
+  " Запрос на замену
+  let l:new = input('Заменить на: ')
+
+  " Экранируем спецсимволы
+  let l:old_escaped = escape(l:old, '/\.*$^~[]')
+
+  " Выполняем замену по всему буферу
+  execute '%s/' . l:old_escaped . '/' . l:new . '/g'
+endfunction
 
 " --- airline ---
 let g:airline#extensions#tabline#enabled = 1
@@ -237,6 +265,10 @@ autocmd InsertEnter * set norelativenumber
 
 " Выход из вставки: снова включить относительную
 autocmd InsertLeave * set relativenumber
+
+" автосохранение 
+set updatetime=300
+autocmd InsertLeave,TextChanged,TextChangedI * silent! wall
 
 
 " стартовое окно
@@ -395,4 +427,3 @@ function OpenSearchTab()
   require('telescope.builtin').find_files()
 end
 EOF
-
